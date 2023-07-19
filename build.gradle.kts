@@ -1,15 +1,33 @@
+plugins {
+    id("org.openapi.generator") version "6.6.0"
+}
 
 val serviceDir = "$projectDir/service"
 val uiDir = "$projectDir/ui"
 val apiDir = file("$projectDir/api")
+val apiFile = file("$apiDir/assistant-api.yaml")
 val serviceImageName = "exam-preparation-assistant-service:latest"
 val uiImageName = "exam-preparation-assistant-ui:latest"
+
+// configure generator
+openApiGenerate {
+    generatorName.set("typescript-axios")
+    inputSpec.set("$apiFile")
+    outputDir.set("$uiDir/src/api-client")
+    configOptions.set( mapOf( "supportsES6" to "true" ) )
+}
 
 /*
  * Dieser Task benutzt die API Beschreibung, um eine API für unser Backend zu erzeugen
  */
 tasks.register("generateServiceApi") {
     group = "assistant"
+
+    inputs.file(apiFile)
+    inputs.dir("$apiDir/templates")
+    outputs.file("$serviceDir/code/main.py")
+    outputs.file("$serviceDir/code/controller_models.py")
+
     doLast{
         exec{
             commandLine(("fastapi-codegen --input assistant-api.yaml --template-dir templates " +
@@ -24,13 +42,7 @@ tasks.register("generateServiceApi") {
  */
 tasks.register("generateUiApi") {
     group = "assistant"
-    doLast{
-        exec{
-            commandLine(("openapi-generator-cli generate -g typescript-axios -i assistant-api.yaml " +
-                    "-o $uiDir/src/api-client -c $uiDir/openapi-config.json").split(" "))
-            workingDir = apiDir
-        }
-    }
+    dependsOn("openApiGenerate")
 }
 
 /*
@@ -38,6 +50,8 @@ tasks.register("generateUiApi") {
  */
 tasks.register("buildServiceImage") {
     group = "assistant"
+    dependsOn("generateServiceApi")
+
     doLast{
         exec {
             commandLine("docker build --tag $serviceImageName .".split(" "))
@@ -51,6 +65,8 @@ tasks.register("buildServiceImage") {
  */
 tasks.register("buildUiImage") {
     group = "assistant"
+    dependsOn("generateUiApi")
+
     doLast{
         exec {
             commandLine("docker build --tag $uiImageName .".split(" "))
