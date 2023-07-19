@@ -1,0 +1,65 @@
+# Bitte die API erweitern, nach Zeilen mit # suchen und dort erweitern
+# Außerdem kann die Description usw. auch gern verbessert werden
+openapi: 3.0.0
+info:
+  description: >-
+    This is the API description for the exam preparation assistant application.
+  version: 1.0.0
+  title: Exam Preparation Assistant
+tags:
+  - name: exam
+    description: Everything related to exam preparations.
+paths:
+  /exam:
+    post:
+      tags:
+        - exam
+      summary: Send a request for a new preparation to the assistant
+      description: ''
+      operationId: sendExamPreparationRequest
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExamPreparation'
+        '405':
+          description: Invalid input
+      requestBody:
+        $ref: '#/components/requestBodies/ExamPreparationRequest'
+components:
+  requestBodies:
+    ExamPreparationRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExamPreparationRequest'
+      description: Body containing everything relevant for an exam preparation request
+      required: true
+  schemas:
+    ExamPreparationRequest:
+      title: Request for new exam preparation
+      description: Object containing information for a new exam preparation request.
+      type: object
+      required:
+        # Fehlende Informationen bitte hier hinzufügen
+        - examField
+      properties:
+        # Neue Felder hier definieren, die relevant sein könnten für eine Vorbereitung
+        examField:
+          type: string
+          example: Mathematik
+
+    ExamPreparation:
+      title: Exam preparation
+      description: Object containing information for an exam preparation.
+      type: object
+      required:
+        # Informationen hinzufügen, die vom Service zurückgegeben werden sollen
+        - learningPlan
+      properties:
+        # Informationen hinzufügen, die vom Service zurückgegeben werden sollen
+        learningPlan:
+          type: string
+          description: Learning plan for the exam
